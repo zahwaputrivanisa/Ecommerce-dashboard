@@ -9,6 +9,7 @@ import seaborn as sns
 orders = pd.read_csv("orders_clean.csv")
 order_items = pd.read_csv("order_items_clean.csv")
 order_reviews = pd.read_csv("order_reviews_clean.csv")
+order_payments = pd.read_csv("order_payments_clean.csv")
 products = pd.read_csv("products_clean.csv")
 translation = pd.read_csv("category_translation_clean.csv")
 
@@ -105,8 +106,6 @@ st.divider()
 # 👤 RFM SEGMENTATION
 # =========================
 st.subheader("👤 Segmentasi Pelanggan (RFM)")
-
-order_payments = pd.read_csv("order_payments_clean.csv")
 
 rfm_df = orders.merge(order_payments, on="order_id")
 
