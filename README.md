@@ -10,28 +10,27 @@ Dashboard ini dibuat untuk menganalisis data e-commerce Brazil (2017–2018).
 
 ## Cara Menjalankan:
 
-1. Buat virtual environment terlebih dahulu:
-   
-   python -m venv venv  
+1. Masuk ke folder project
+cd dashboard
 
-2. Aktifkan virtual environment:
+2. Buat virtual environment
+python -m venv venv
 
-   Windows:  
-   venv\Scripts\activate  
+3. Aktifkan virtual environment
+Windows:
+venv\Scripts\activate
 
-   Mac/Linux:  
-   source venv/bin/activate  
+Mac/Linux:
+source venv/bin/activate
 
-3. Install library yang dibutuhkan:
-   
-   pip install -r requirements.txt  
+4. Install library
+pip install -r requirements.txt
 
-4. Jalankan dashboard:
-   
-   streamlit run dashboard.py  
+6. Jalankan dashboard
+streamlit run dashboard.py
 
 ## Dataset:
-Dataset yang digunakan adalah Olist E-commerce Dataset.
+Dataset yang digunakan adalah E-commerce Dataset.
 
 ## Author:
 Zahwa Putri Vanisa
