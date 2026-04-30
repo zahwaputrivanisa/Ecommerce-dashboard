@@ -1,37 +1,31 @@
-# E-commerce Dashboard
+# 📊 E-commerce Dashboard
 
-Dashboard ini dibuat untuk menganalisis data e-commerce Brazil (2017–2018).
+Dashboard ini dibuat untuk menganalisis data e-commerce Brazil (2017–2018) menggunakan Streamlit.
 
-## Fitur:
-- Analisis keterlambatan pengiriman  
-- Review produk per kategori  
-- Segmentasi pelanggan menggunakan RFM  
-- Filter interaktif pada dashboard  
+## ⚙️ Cara Menjalankan
 
-## Cara Menjalankan:
+1. Masuk ke folder project:
+   cd dashboard
 
-1. Masuk ke folder project
-cd dashboard
+2. Buat virtual environment:
+   python -m venv venv
 
-2. Buat virtual environment
-python -m venv venv
+3. Aktifkan virtual environment:
 
-3. Aktifkan virtual environment
-   
-Windows:
-venv\Scripts\activate
+   Windows:
+   venv\Scripts\activate
 
-Mac/Linux:
-source venv/bin/activate
+   Mac/Linux:
+   source venv/bin/activate
 
-4. Install library
-pip install -r requirements.txt
+4. Install dependencies:
+   pip install -r requirements.txt
 
-6. Jalankan dashboard
-streamlit run dashboard.py
+5. Jalankan dashboard:
+   streamlit run dashboard.py
 
-## Dataset:
-Dataset yang digunakan adalah E-commerce Dataset.
+## 📊 Dataset
+Dataset yang digunakan adalah E-commerce Dataset (Brazil).
 
-## Author:
+## 👤 Author
 Zahwa Putri Vanisa
