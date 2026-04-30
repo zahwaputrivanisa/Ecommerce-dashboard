@@ -17,6 +17,7 @@ cd dashboard
 python -m venv venv
 
 3. Aktifkan virtual environment
+   
 Windows:
 venv\Scripts\activate
 
