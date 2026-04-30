@@ -3,40 +3,50 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-st.set_page_config(layout="wide")
+# =========================
+# CONFIG
+# =========================
+st.set_page_config(page_title="E-commerce Dashboard", layout="wide")
 
 # =========================
 # LOAD DATA
 # =========================
-orders = pd.read_csv("orders_clean.csv")
-order_items = pd.read_csv("order_items_clean.csv")
-order_reviews = pd.read_csv("order_reviews_clean.csv")
-order_payments = pd.read_csv("order_payments_clean.csv")
-products = pd.read_csv("products_clean.csv")
-translation = pd.read_csv("category_translation_clean.csv")
+@st.cache_data
+def load_data():
+    orders = pd.read_csv("orders_clean.csv")
+    order_items = pd.read_csv("order_items_clean.csv")
+    order_reviews = pd.read_csv("order_reviews_clean.csv")
+    order_payments = pd.read_csv("order_payments_clean.csv")
+    products = pd.read_csv("products_clean.csv")
+    return orders, order_items, order_reviews, order_payments, products
+
+orders, order_items, order_reviews, order_payments, products = load_data()
 
 # =========================
-# PREPROCESS
+# PREPROCESSING
 # =========================
 orders['order_purchase_timestamp'] = pd.to_datetime(orders['order_purchase_timestamp'])
-
-df = order_items.merge(order_reviews, on="order_id")
-df = df.merge(products, on="product_id")
-df = df.merge(translation, on="product_category_name")
+orders['order_delivered_customer_date'] = pd.to_datetime(orders['order_delivered_customer_date'])
+orders['order_estimated_delivery_date'] = pd.to_datetime(orders['order_estimated_delivery_date'])
 
 # =========================
-# 🎛️ SIDEBAR (INTERAKTIF)
+# MERGE DATA (NO TRANSLATION)
 # =========================
-st.sidebar.title("🎛️ Filter Dashboard")
+df = order_items.merge(order_reviews, on="order_id", how="left")
+df = df.merge(products, on="product_id", how="left")
 
-# FILTER TANGGAL
+# =========================
+# SIDEBAR FILTER (INTERAKTIF)
+# =========================
+st.sidebar.header("🔎 Filter Data")
+
 start_date = st.sidebar.date_input(
-    "Tanggal Mulai",
+    "Start Date",
     orders['order_purchase_timestamp'].min()
 )
 
 end_date = st.sidebar.date_input(
-    "Tanggal Akhir",
+    "End Date",
     orders['order_purchase_timestamp'].max()
 )
 
@@ -45,21 +55,13 @@ filtered_orders = orders[
     (orders['order_purchase_timestamp'] <= pd.to_datetime(end_date))
 ]
 
-# FILTER KATEGORI
-selected_category = st.sidebar.selectbox(
-    "Pilih Kategori Produk",
-    df['product_category_name_english'].dropna().unique()
-)
-
-df_filtered = df[df['product_category_name_english'] == selected_category]
-
 # =========================
 # TITLE
 # =========================
 st.title("📊 E-commerce Dashboard")
 
 # =========================
-# KPI
+# KPI (PAKAI DATA FILTERED)
 # =========================
 col1, col2, col3 = st.columns(3)
 
@@ -74,11 +76,8 @@ st.divider()
 # =========================
 st.subheader("📦 Keterlambatan Pengiriman")
 
-filtered_orders['order_delivered_customer_date'] = pd.to_datetime(filtered_orders['order_delivered_customer_date'])
-filtered_orders['order_estimated_delivery_date'] = pd.to_datetime(filtered_orders['order_estimated_delivery_date'])
-
 filtered_orders['delay'] = (
-    filtered_orders['order_delivered_customer_date'] -
+    filtered_orders['order_delivered_customer_date'] - 
     filtered_orders['order_estimated_delivery_date']
 ).dt.days
 
@@ -97,42 +96,59 @@ st.pyplot(fig)
 
 st.markdown("""
 💡 **Insight:**  
-Sebagian besar pesanan dikirim tepat waktu, namun masih terdapat keterlambatan yang menunjukkan perlunya peningkatan efisiensi logistik.
+Sebagian besar pesanan dikirim tepat waktu, namun masih terdapat keterlambatan.
 """)
 
 st.divider()
 
 # =========================
-# ⭐ REVIEW PER KATEGORI
+# ⭐ REVIEW PER KATEGORI (FIX)
 # =========================
-st.subheader(f"⭐ Review untuk Kategori: {selected_category}")
+st.subheader("⭐ Review per Kategori Produk")
 
-review_category = df_filtered.groupby('product_category_name_english')['review_score'].mean().sort_values()
+review_category = (
+    df.groupby('product_category_name')['review_score']
+    .mean()
+    .sort_values()
+)
 
-fig, ax = plt.subplots()
+lowest = review_category.head(5)
+highest = review_category.tail(5)
 
-sns.barplot(x=review_category.values, y=review_category.index, ax=ax)
+combined = pd.concat([lowest, highest]).sort_values()
 
-ax.set_title("Rata-rata Review Kategori")
-ax.set_xlabel("Review Score")
+fig, ax = plt.subplots(figsize=(8,5))
+
+sns.barplot(
+    x=combined.values,
+    y=combined.index,
+    ax=ax
+)
+
+ax.set_title("Top 5 & Bottom 5 Kategori Review")
+ax.set_xlabel("Rata-rata Review Score")
+ax.set_ylabel("Kategori Produk")
+
 ax.set_xlim(0,5)
 ax.set_xticks(range(0,6))
 
+plt.tight_layout()
 st.pyplot(fig)
 
-st.markdown("""
+st.markdown(f"""
 💡 **Insight:**  
-Performa kategori dapat berubah tergantung pilihan filter, sehingga penting untuk fokus pada kategori dengan skor rendah.
+Kategori dengan review terendah adalah **{lowest.index[0]}**,  
+sedangkan kategori dengan review tertinggi adalah **{highest.index[-1]}**.
 """)
 
 st.divider()
 
 # =========================
-# 👤 RFM SEGMENTATION
+# 👤 RFM SEGMENTATION (INTERAKTIF)
 # =========================
 st.subheader("👤 Segmentasi Pelanggan (RFM)")
 
-rfm_df = filtered_orders.merge(order_payments, on="order_id")
+rfm_df = filtered_orders.merge(order_payments, on="order_id", how="left")
 
 reference_date = rfm_df['order_purchase_timestamp'].max()
 
@@ -144,10 +160,12 @@ rfm = rfm_df.groupby('customer_id').agg({
 
 rfm.columns = ['Recency', 'Frequency', 'Monetary']
 
+# SCORING
 rfm['R_score'] = pd.qcut(rfm['Recency'], 4, labels=[4,3,2,1])
 rfm['F_score'] = pd.qcut(rfm['Frequency'].rank(method='first'), 4, labels=[1,2,3,4])
 rfm['M_score'] = pd.qcut(rfm['Monetary'], 4, labels=[1,2,3,4])
 
+# SEGMENT
 def segment_customer(row):
     if row['R_score'] == 4 and row['F_score'] >= 3:
         return 'Loyal Customer'
@@ -161,36 +179,32 @@ def segment_customer(row):
 rfm['Segment'] = rfm.apply(segment_customer, axis=1)
 
 # FILTER SEGMENT
-selected_segment = st.sidebar.multiselect(
-    "Pilih Segment",
-    rfm['Segment'].unique(),
+segment_filter = st.sidebar.multiselect(
+    "Pilih Segment Pelanggan",
+    options=rfm['Segment'].unique(),
     default=rfm['Segment'].unique()
 )
 
-rfm_filtered = rfm[rfm['Segment'].isin(selected_segment)]
-
+rfm_filtered = rfm[rfm['Segment'].isin(segment_filter)]
 segment_counts = rfm_filtered['Segment'].value_counts()
 
 fig, ax = plt.subplots()
-
 segment_counts.plot(kind='bar', ax=ax)
 
 ax.set_title("Distribusi Segment Pelanggan")
 ax.set_xlabel("Segment")
-ax.set_ylabel("Jumlah")
+ax.set_ylabel("Jumlah Pelanggan")
 
 plt.xticks(rotation=0)
-
 st.pyplot(fig)
 
 st.markdown("""
 💡 **Insight:**  
-Mayoritas pelanggan berada pada segmen *At Risk*, sehingga strategi retensi sangat diperlukan.
+Mayoritas pelanggan berada pada segmen At Risk, menunjukkan potensi churn tinggi.
 """)
 
 st.divider()
 
-# ======================
 # FOOTER
 # ======================
 st.caption("Dashboard E-commerce Brazil | Fundamental Analysis Data Submission 🚀")
