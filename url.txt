@@ -1,1 +1,1 @@
-https://ecommerce-dashboard-zahwa.streamlit.app/
+https://ecommerce-dashboard-v2-zahwa.streamlit.app/
