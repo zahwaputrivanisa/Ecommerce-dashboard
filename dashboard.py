@@ -9,12 +9,15 @@ st.set_page_config(page_title="E-commerce Dashboard", layout="wide")
 # LOAD DATA
 # =========================
 @st.cache_data
-orders = pd.read_csv("orders_clean.csv")
-order_items = pd.read_csv("order_items_clean.csv")
-order_reviews = pd.read_csv("order_reviews_clean.csv")
-order_payments = pd.read_csv("order_payments_clean.csv")
-products = pd.read_csv("products_clean.csv")
+def load_data():
+    orders = pd.read_csv("orders_clean.csv")
+    order_items = pd.read_csv("order_items_clean.csv")
+    order_reviews = pd.read_csv("order_reviews_clean.csv")
+    order_payments = pd.read_csv("order_payments_clean.csv")
+    products = pd.read_csv("products_clean.csv")
+    return orders, order_items, order_reviews, order_payments, products
 
+orders, order_items, order_reviews, order_payments, products = load_data()
 # =========================
 # PREPROCESS
 # =========================
